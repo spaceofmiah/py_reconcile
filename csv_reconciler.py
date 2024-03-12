@@ -15,50 +15,40 @@ class ScriptArguments(Tap):
     o: str  
 
 
-args = ScriptArguments(underscores_to_dashes=True).parse_args()
+def get_missing_records(df, series, key):
+    merged = pd.merge(df, series, on=key, how='left', indicator=True)
+    data = merged[merged['_merge'] == 'left_only']
+    data = data.drop(columns=['_merge'])
+    return data
 
-source_df = pd.read_csv(args.s, dtype=dtype)
-target_df = pd.read_csv(args.t, dtype=dtype)
+def store_missing_records(df, store, message):
+    for _, row in df.iterrows():
+        store.append((message, *row))
 
-# Merge the DataFrames on the 'ID' column, keeping only rows from df2 that have no corresponding ID in df1
-merged = pd.merge(target_df, source_df['ID'], on='ID', how='left', indicator=True)
-
-# Filter the merged DataFrame to find records missing from source
-in_source_only = merged[merged['_merge'] == 'left_only']
-
-# Drop the '_merge' column
-in_source_only = in_source_only.drop(columns=['_merge'])
-
-
-
-# Merge the DataFrames on the 'ID' column, keeping only rows from df2 that have no corresponding ID in df1
-merged = pd.merge(source_df, target_df['ID'], on='ID', how='left', indicator=True)
-
-# Filter the merged DataFrame to find records missing from source
-in_target_only = merged[merged['_merge'] == 'left_only']
-
-# Drop the '_merge' column
-in_target_only = in_target_only.drop(columns=['_merge'])
+def store_field_discrepancies(source, target, store, key, message):
+    for i, row in source.iterrows():
+        for column in source.columns:
+            if row[column] != target.loc[i, column] and row[key] == target_df.loc[i, key]:
+                store.append((message, row[column], target_df.loc[i, column]))
 
 
-reconciliation = []
 
-for _, row in in_source_only.iterrows():
-    reconciliation.append(('Missing in Target', *row))
+if __name__ == "__main__":
+    args = ScriptArguments(underscores_to_dashes=True).parse_args()
+
+    source_df = pd.read_csv(args.s, dtype=dtype)
+    target_df = pd.read_csv(args.t, dtype=dtype)
+
+    in_source_only = get_missing_records(target_df, source_df['ID'], 'ID')
+    in_target_only = get_missing_records(source_df, target_df['ID'], 'ID')
+
+    store = []
+    store_missing_records(in_source_only, store, 'Missing in Target')
+    store_missing_records(in_target_only, store, 'Missing in Source')
+    store_field_discrepancies(source_df, target_df, store, 'ID', 'Field Discrepancy')
 
 
-for _, row in in_target_only.iterrows():
-    reconciliation.append(('Missing in Source', *row))
-
-
-for i, row in source_df.iterrows():
-    for column in source_df.columns:
-        if row[column] != target_df.loc[i, column] and row["ID"] == target_df.loc[i, "ID"]:
-            reconciliation.append(("Field Discrepancy", row[column], target_df.loc[i, column]))
-
-
-writer = csv.writer(open(args.o, mode='w'))
-writer.writerows(reconciliation)
-
+    writer = csv.writer(open(args.o, mode='w'))
+    writer.writerows(store)
 
 
