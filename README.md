@@ -26,7 +26,7 @@ The program requires two compulsory csv file as inputs serving as source and tar
 
 
 ```bash
-python csv_reconciler.py --s path/to/sourc_csv --t path/to/target_csv --o file.csv
+python csv_reconciler.py --s path/to/source_csv --t path/to/target_csv --o file.csv
 ```
 
 `--s` : source : a csv file with data entries
@@ -43,7 +43,7 @@ python csv_reconciler.py --s path/to/sourc_csv --t path/to/target_csv --o file.c
 To run the program with specific columns to reconcile use the below command. This would only reconcile column ID  Date &  Name
 
 ```bash
-python csv_reconciler.py --s path/to/sourc_csv --t path/to/target_csv --o file.csv --c "ID,Date,Name"
+python csv_reconciler.py --s path/to/source_csv --t path/to/target_csv --o file.csv --c "ID,Date,Name"
 ```
 
 ### Followed Guidelines
