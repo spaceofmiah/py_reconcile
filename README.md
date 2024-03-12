@@ -3,7 +3,6 @@ A script to reconcile two different CSV data records
 
 Program takes in two different CSV file, one as source and the other as target and reconciles data in both.
 
-
 ### Getting Started
 
 To get started using the program, you first have to install the dependencies. Use below command to install dependencies
@@ -15,6 +14,16 @@ pip install -r requirements.txt
 ### Running the Program
 
 The program requires two compulsory csv file as inputs serving as source and target respectively
+
+### Supported Features
+
+- Produce a reconciliation report with the following sections:
+    - Records present in source but missing in target.
+    - Records present in target but missing in source.
+    - Records with field discrepancies, highlighting the specific fields that differ.
+
+- Allow the user to configure which columns to compare, in case some columns should be ignored during reconciliation.
+
 
 ```bash
 python csv_reconciler.py --s path/to/csv --t path/to/csv --o file.csv
@@ -29,3 +38,13 @@ python csv_reconciler.py --s path/to/csv --t path/to/csv --o file.csv
 **optional**
 
 `--c` : comma separated list of columns to reconcile e.g 'ID,Name,Date' would only reconcile for ID,   Name,   & Date column
+
+
+### Followed Guidelines
+
+- Ensured code quality with a well-organized, commented, and
+tested solution
+
+- Provided documentation or instructions on how to run your tool.
+
+- Product is built to scale over millions of records.
