@@ -1,6 +1,5 @@
 import pandas as pd
 from tap import Tap
-import csv
 
 dtype = {
     'ID': str,
@@ -41,7 +40,22 @@ def store_field_discrepancies(source, target, store, key, message) -> int:
 
 
 if __name__ == "__main__":
+    import csv
+    from pathlib import Path
+
     args = ScriptArguments(underscores_to_dashes=True).parse_args()
+
+    source_exist = Path(args.s).exists()
+    target_exist = Path(args.t).exists()
+
+    if not source_exist:
+        print(f"Unable to locate source file: {args.s}")
+        exit(0)
+
+    if not target_exist:
+        print(f"Unable to locate target file: {args.t}")
+        exit(0)
+
 
     source_df = pd.read_csv(args.s, dtype=dtype)
     target_df = pd.read_csv(args.t, dtype=dtype)
