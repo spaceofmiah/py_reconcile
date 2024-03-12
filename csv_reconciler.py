@@ -121,12 +121,38 @@ if __name__ == "__main__":
     # while handling for column mismatch should there be any. 
     try:
         source_df = pd.read_csv(args.s, usecols=columns)
+    except ValueError as e:
+        if "do not match columns" in str(e):
+            missing_columns = str(e).split(':')[-1]
+            print(f"\n\nColumns not found in source CSV: {missing_columns}\n")
+            exit(0)
+        print("In source CSV: ", str(e))
+        exit(0)
+    except Exception as e:
+        print(str(e))
+        exit(0)
+
+    try:
         target_df = pd.read_csv(args.t, usecols=columns)
     except ValueError as e:
         if "do not match columns" in str(e):
             missing_columns = str(e).split(':')[-1]
             print(f"\n\nColumns not found in the provided source & target CSV: {missing_columns}\n")
             exit(0)
+        print("In target CSV: ", str(e))
+        exit(0)
+    except Exception as e:
+        print(str(e))
+        exit(0)
+    
+    if source_df.shape[0] < 0:
+        print(f"Source CSV is empty - unable to reconcile")
+        exit(0)
+    
+    if target_df.shape[0] < 0:
+        print(f"Source CSV is empty - unable to reconcile")
+        exit(0)
+
 
     # get missing records in source csv that's present in target csv
     in_target_only = get_missing_records(target_df, source_df['ID'], 'ID')
