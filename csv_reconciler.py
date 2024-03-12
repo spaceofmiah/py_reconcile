@@ -144,15 +144,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(str(e))
         exit(0)
-    
-    if source_df.shape[0] < 0:
-        print(f"Source CSV is empty - unable to reconcile")
-        exit(0)
-    
-    if target_df.shape[0] < 0:
-        print(f"Source CSV is empty - unable to reconcile")
-        exit(0)
-
 
     # get missing records in source csv that's present in target csv
     in_target_only = get_missing_records(target_df, source_df['ID'], 'ID')
