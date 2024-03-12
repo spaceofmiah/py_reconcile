@@ -46,22 +46,31 @@ if __name__ == "__main__":
 
     args = ScriptArguments(underscores_to_dashes=True).parse_args()
 
+    # check if the passed source file exists
     source_exist = Path(args.s).exists()
+
+    # check if the passed target file exists
     target_exist = Path(args.t).exists()
 
+    # handle for when source file doesn't exist
     if not source_exist:
         print(f"Unable to locate source file: {args.s}")
         exit(0)
 
+    # handle for when target file doesn't exist
     if not target_exist:
         print(f"Unable to locate target file: {args.t}")
         exit(0)
 
+    # preprocess columns to reconcile.
     if not args.c or len(args.c) == 0:
-        columns = dtype.keys()
+        columns = dtype.keys() # use default columns 
     else:
-        columns = args.c.split(',')
+        columns = args.c.split(',') # use specified reconciliation columns
 
+
+    # read source and target csv files as given on program run
+    # while handling for column mismatch should there be any. 
     try:
         source_df = pd.read_csv(args.s, usecols=columns)
         target_df = pd.read_csv(args.t, usecols=columns)
@@ -71,9 +80,14 @@ if __name__ == "__main__":
             print(f"\n\nColumns not found in the provided source & target CSV: {missing_columns}\n")
             exit(0)
 
+    # get missing records in source csv that's present in target csv
     in_target_only = get_missing_records(target_df, source_df['ID'], 'ID')
+
+    # get missing records in target csv that's present in source csv
     in_source_only = get_missing_records(source_df, target_df['ID'], 'ID')
 
+
+    # Store all missing records and field discrepancies
     store = []
     store_missing_records(in_source_only, store, 'Missing in Target')
     store_missing_records(in_target_only, store, 'Missing in Source')
@@ -81,9 +95,12 @@ if __name__ == "__main__":
         source_df, target_df, store, 'ID', 'Field Discrepancy'
     )
 
+    # save reconciliation to the provided output csv file
     writer = csv.writer(open(args.o, mode='w'))
     writer.writerows(store)
 
+
+    # output bash command
     print("\n\nReconciliation Completed:")
     print("- Records missing in target: ", in_source_only.shape[0])
     print("- Records missing in source: ", in_target_only.shape[0])
