@@ -9,6 +9,14 @@ dtype = {
 }
 
 class ScriptArguments(Tap):
+    """Defines argument required to run script 
+    
+    Args:
+        s ([str]):  file path to source csv file
+        t ([str]):  file path to target csv file
+        o ([str]):  file path to output csv file. Defines where reconciliation would be store
+        c ([str]):  comma separated columns to compare. column name should be same as that found on both source and target file
+    """
     s: str  
     t: str 
     o: str  
@@ -16,16 +24,56 @@ class ScriptArguments(Tap):
 
 
 def get_missing_records(df, series, key) -> pd.DataFrame:
+    """
+    Get missing records from source dataframe based on series
+
+    Args:
+        df (pd.DataFrame): Source dataframe
+        series (pd.Series): Series to compare with
+        key (str): Key to compare with series
+    
+    Returns:
+        pd.DataFrame: Missing records from source dataframe based on series
+    
+    Example:
+        >>> df = pd.DataFrame({'ID': [1, 2, 3], 'Name': ['John', 'Jane', 'Jack']})
+        >>> series = pd.Series([1, 2, 3, 4, 5])
+        >>> key = 'ID'
+        >>> get_missing_records(df, series, key)
+        ID  Name
+        3  Jack
+    """
     merged = pd.merge(df, series, on=key, how='left', indicator=True)
     data = merged[merged['_merge'] == 'left_only']
     data = data.drop(columns=['_merge'])
     return data
 
 def store_missing_records(df, store, message) -> None:
+    """
+    Store missing records from source dataframe
+
+    Args:
+        df (pd.DataFrame): Source dataframe
+        store (list): List to store missing records
+        message (str): Message to store in store
+    """
     for _, row in df.iterrows():
         store.append((message, *row))
 
 def store_field_discrepancies(source, target, store, key, message) -> int:
+    """
+    Store field discrepancies between source and target
+
+    Args:
+        source (pd.DataFrame): Source dataframe
+        target (pd.DataFrame): Target dataframe
+        store (list): List to store missing records
+        key (str): Key to compare with series
+        message (str): Message to store in store
+
+    Returns:
+        int: Number of field discrepancies found
+    """
     count = 0
     for i, row in source.iterrows():
         for column in source.columns:
