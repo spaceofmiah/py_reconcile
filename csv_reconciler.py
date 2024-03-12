@@ -12,6 +12,7 @@ class ScriptArguments(Tap):
     s: str  
     t: str 
     o: str  
+    c: str = '' # comma separated columns to compare. column name should be same as that found on both source and target file
 
 
 def get_missing_records(df, series, key) -> pd.DataFrame:
@@ -56,9 +57,19 @@ if __name__ == "__main__":
         print(f"Unable to locate target file: {args.t}")
         exit(0)
 
+    if not args.c or len(args.c) == 0:
+        columns = dtype.keys()
+    else:
+        columns = args.c.split(',')
 
-    source_df = pd.read_csv(args.s, dtype=dtype)
-    target_df = pd.read_csv(args.t, dtype=dtype)
+    try:
+        source_df = pd.read_csv(args.s, usecols=columns)
+        target_df = pd.read_csv(args.t, usecols=columns)
+    except ValueError as e:
+        if "do not match columns" in str(e):
+            missing_columns = str(e).split(':')[-1]
+            print(f"\n\nColumns not found in the provided source & target CSV: {missing_columns}\n")
+            exit(0)
 
     in_target_only = get_missing_records(target_df, source_df['ID'], 'ID')
     in_source_only = get_missing_records(source_df, target_df['ID'], 'ID')

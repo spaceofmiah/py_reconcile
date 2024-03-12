@@ -25,3 +25,7 @@ python csv_reconciler.py --s path/to/csv --t path/to/csv --o file.csv
 `--t` : target : a csv file with data entries
 
 `--o` : output
+
+**optional**
+
+`--c` : comma separated list of columns to reconcile e.g 'ID,Name,Date' would only reconcile for ID,   Name,   & Date column
