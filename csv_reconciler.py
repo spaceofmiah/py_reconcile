@@ -1,6 +1,6 @@
 import pandas as pd
-import csv
 from tap import Tap
+import csv
 
 dtype = {
     'ID': str,
@@ -20,15 +20,25 @@ args = ScriptArguments(underscores_to_dashes=True).parse_args()
 source_df = pd.read_csv(args.s, dtype=dtype)
 target_df = pd.read_csv(args.t, dtype=dtype)
 
-# Merge the DataFrames
-merged = pd.merge(source_df, target_df, how='outer', indicator=True)
+# Merge the DataFrames on the 'ID' column, keeping only rows from df2 that have no corresponding ID in df1
+merged = pd.merge(target_df, source_df['ID'], on='ID', how='left', indicator=True)
 
-# Keep only the rows that exist in one DataFrame but not in the other
-in_target_only = merged[merged['_merge'] == 'right_only']
-in_target_only = in_target_only.drop(columns=['_merge'])
-
+# Filter the merged DataFrame to find records missing from source
 in_source_only = merged[merged['_merge'] == 'left_only']
+
+# Drop the '_merge' column
 in_source_only = in_source_only.drop(columns=['_merge'])
+
+
+
+# Merge the DataFrames on the 'ID' column, keeping only rows from df2 that have no corresponding ID in df1
+merged = pd.merge(source_df, target_df['ID'], on='ID', how='left', indicator=True)
+
+# Filter the merged DataFrame to find records missing from source
+in_target_only = merged[merged['_merge'] == 'left_only']
+
+# Drop the '_merge' column
+in_target_only = in_target_only.drop(columns=['_merge'])
 
 
 reconciliation = []
@@ -49,3 +59,6 @@ for i, row in source_df.iterrows():
 
 writer = csv.writer(open(args.o, mode='w'))
 writer.writerows(reconciliation)
+
+
+
